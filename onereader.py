@@ -3,14 +3,15 @@ from time import sleep
 import RPi.GPIO as GPIO
 
 servo = 22
-led1 = 11
-led2 = 13
-led3 = 15
-led4 = 29
-led5 = 31
+led1 = 8
+led2 = 10
+led3 = 12
+led4 = 16
+led5 = 18
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(servo, GPIO.OUT)
+
 GPIO.setup(led1, GPIO.OUT)
 GPIO.setup(led2, GPIO.OUT)
 GPIO.setup(led3, GPIO.OUT)
@@ -19,9 +20,8 @@ GPIO.setup(led5, GPIO.OUT)
 
 p=GPIO.PWM(servo, 50) #50Hz frequency
 
-##control = [5,5.5,6,6,5,7,7,5]
-
 dev=usb.core.find(idVendor=0x1949, idProduct=0x041b)
+
 if dev is None:
     print('Device not found')
     exit()
@@ -33,7 +33,6 @@ dev.reset()
 if dev.is_kernel_driver_active(i):
     dev.detach_kernel_driver(i)
 
-#usb.util.claim_interface(dev, i)
 dev.set_configuration()
 eaddr=ep.bEndpointAddress
 
@@ -49,6 +48,15 @@ def ledcontrol(state):
     GPIO.output(led4, state)
     GPIO.output(led5, state)
 
+def setAngle(angle):
+    duty = angle / 18 + 2
+    GPIO.output(servo, True)
+    p.ChangeDutyCycle(duty)
+    sleep(1)
+    GPIO.output(servo, False)
+    p.ChangeDutyCycle(duty)
+
+
 ledcontrol(GPIO.HIGH)
 sleep(1)
 ledcontrol(GPIO.LOW)
@@ -59,7 +67,8 @@ while True:
             ack=False
             print('Turn servo')
             ledcontrol(GPIO.HIGH)
-            p.ChangeDutyCycle(7.5)
+            p.ChangeDutyCycle(7.5)  #use 5.5 to move almost 90 deg
+            #setAngle(90)
             sleep(1)
             GPIO.output(led1, GPIO.LOW)
             sleep(1)
@@ -72,16 +81,7 @@ while True:
             GPIO.output(led5, GPIO.LOW)
             sleep(1)
             p.ChangeDutyCycle(2.5)
-##            for x in range(6):
-##                p.ChangeDutyCycle(control[x])
-##                sleep(0.03)
-##                print(x)
-##            sleep(5)
-##            for x in range(6, 0, -1):
-##                p.ChangeDutyCycle(control[x])
-##                sleep(0.03)
-##                print(x)
-##            p.ChangeDutyCycle(2.5)
+            #setAngle(0)
         elif ack==False:
             GPIO.output(led3, GPIO.LOW)
             sleep(1)
@@ -98,6 +98,7 @@ while True:
     except KeyboardInterrupt:
         break
 
+p.stop()
 GPIO.cleanup()
 usb.util.release_interface(dev, i)
 dev.attach_kernel_driver(i)
