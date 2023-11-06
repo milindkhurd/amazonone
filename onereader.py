@@ -2,12 +2,12 @@ import usb.core
 from time import sleep
 import RPi.GPIO as GPIO
 
-servo = 22
-led1 = 8
-led2 = 10
-led3 = 12
-led4 = 16
-led5 = 18
+servo = 8
+led1 = 37
+led2 = 35
+led3 = 33
+led4 = 31
+led5 = 29
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(servo, GPIO.OUT)
